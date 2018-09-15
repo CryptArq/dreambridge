@@ -1125,7 +1125,7 @@ function initContract(factoryAddress){
   }
   f = factory.at(factoryAddress)
   let event = f.allEvents()
-  console.log('Listening for Events on ', factoryAddress);
+  console.log('Listening for Events on ', factoryDeployed);
   event.watch(function(e,r){
     if(!e){
 			if(r.event == 'campaignLaunched'){
