@@ -1065,13 +1065,13 @@ var messageOptions = {
   text: 'The Event Listener has been started.'
 }
 var counter = 0;
-transporter.sendMail(messageOptions, (error,info) => {
+/*transporter.sendMail(messageOptions, (error,info) => {
   if(error){
     return console.log(error);
   } else {
     return console.log('Sent');
   }
-})
+})*/
 
 if (typeof web3 !== 'undefined') {
   web3 = new Web3(web3.currentProvider);
@@ -1086,25 +1086,32 @@ var campaign = web3.eth.contract(campaignABI);
 var factory = web3.eth.contract(factoryABI);
 var factoryContract = factory.at(factoryDeployed);
 var campaignStatusM = ["Open", "Pending Completion", "Payment Ready", "Finished", "Suspended", "Derelict"];
-
+var syncCount = 0;
 console.log("Eth Node Version: ", web3.version.node);
 console.log("Network: " ,web3.version.network, web3.version.ethereum);
 console.log("Connected: ", web3.isConnected(), web3.currentProvider);
 console.log("syncing: ", web3.eth.syncing, ", Latest Block: ",web3.eth.blockNumber);
 
-contract = initContract(factoryDeployed);
-update = setInterval(statusUpdates,15000);
+contract = setInterval(initContract, 30000);
 
-function initContract(factoryAddress){
+function initContract(factoryDeployed){
+  if(web3.eth.syncing !== false){
+    let highest = web3.eth.syncing.highestBlock;
+    let current = web3.eth.syncing.currentBlock;
+    let percent = ((current/highest)*100).toFixed(2);
+    console.log('Syncing Block:', current, 'of', highest, '('+percent+'% Synced)');
+    return;
+  } else {
+  update = setInterval(statusUpdates,15000);
   let configFile = './config.json';
   let config = require(configFile);
-  let startBlock = 0;
+  var startBlock = 0;
   if(web3.eth.blockNumber > config.ETH.lastBlock){
     console.log('Latest Block in Config: '+ config.ETH.lastBlock + '...Updating Events');
     startBlock = config.ETH.lastBlock-10;
-      f = factory.at(factoryDeployed)
-      let event = f.allEvents({fromBlock: startBlock, toBlock: 'latest'});
-      event.get(function(e,r){
+      f = factory.at(factoryDeployed);
+      var event = f.allEvents({fromBlock: startBlock, toBlock: 'latest'});
+      event.get(function(e,r) {
       if(!e){
       for(var i = 0; i< r.length; i++){
           if(r[i].event == 'campaignLaunched'){
@@ -1118,14 +1125,16 @@ function initContract(factoryAddress){
             console.log('Additional Payout: ' + r[i].args);
           }
       }
-    } else {return e;}
+    } else {return console.log('Error Retrieving Past Events: ', e);}
     });
+
   } else {
     startBlock = 'latest';
   }
-  f = factory.at(factoryAddress)
-  let event = f.allEvents()
-  console.log('Listening for Events on ', factoryAddress);
+  f = factory.at(factoryDeployed)
+  var event = f.allEvents()
+  console.log('Listening for Events on ', factoryDeployed);
+  contract.clearInterval();
   event.watch(function(e,r){
     if(!e){
 			if(r.event == 'campaignLaunched'){
@@ -1146,6 +1155,7 @@ function initContract(factoryAddress){
   });
   return;
 }
+}
 
 function insertToAWS(result){
 	var params = {
@@ -1162,17 +1172,17 @@ function insertToAWS(result){
 				var address = result.args._newCampaign;
 				var campaignCon = campaign.at(address);
 				campaignCon.campaignInformation.call(function(e, info){
-	    		let campaignAddress = address;
-          let campaignDuration = info[4].c[0];
-	  			let campaignOwner = info[0];
-	  			let campaignName = info[1];
-	  			let campaignGoal = (info[2].c[0]/10000);
-	  			let campaignRewardPool = info[5].c[0];
-          let verCode = web3.sha3(address+Date.now()+campaignOwner+campaignName+address);
-          let verString = web3.sha3(verCode);
+	    		var campaignAddress = address;
+          var campaignDuration = info[4].c[0];
+	  			var campaignOwner = info[0];
+	  			var campaignName = info[1];
+	  			var campaignGoal = (info[2].c[0]/10000);
+	  			var campaignRewardPool = info[5].c[0];
+          var verCode = web3.sha3(address+Date.now()+campaignOwner+campaignName+address);
+          var verString = web3.sha3(verCode);
           console.log(verCode +' ' + verString +' '+ web3.sha3(verCode));
 
-        	let params = {
+        	var params = {
 	  				TableName: profileTable,
 	  				Item: {
 							"profileAddress": campaignAddress,
@@ -1216,7 +1226,7 @@ function insertToAWS(result){
 							console.log(e);
 						} else {
 							console.log('Added.')
-              let messageOptions = {
+              var messageOptions = {
                 from:'donotreply@dreambridge.io',
                 to:'cpeterson@dreambridge.io',
                 subject:'New Campaign Added: ' + result.args._newCampaign,
@@ -1229,7 +1239,7 @@ function insertToAWS(result){
                   return console.log('Addition Message Sent to MCP');
                 }
               })
-              let messageOptions = {
+              var messageOptions = {
                 from:'donotreply@dreambridge.io',
                 to: result.args._emails,
                 bcc: 'campaigns@dreambridge.io',
@@ -1257,7 +1267,7 @@ function insertToAWS(result){
                   return console.log('Creation Message Sent to User');
                 }
               })
-              let messageOptions = {
+              var messageOptions = {
                 from:'donotreply@dreambridge.io',
                 to: result.args._emails,
                 bcc: 'campaigns@dreambridge.io',
@@ -1365,12 +1375,11 @@ function donationNotificationCheck(res){
           if(error){
             return console.log(error);
           } else {
+
               return console.log('Donation Notification Sent for: ' + res.args._campaign);
           }
       });
-    } else {
-      return;
-    }
+    } else {return;}
   }
   });
 
@@ -1439,6 +1448,7 @@ function statusUpdateNotification(address, status, previous) {
 
 function statusUpdates(){
         updateClass._updateConfig();
+
             var params = {
                 TableName: profileTable,
                 ProjectionExpression: "profileAddress, cStatus"
@@ -1471,7 +1481,7 @@ function statusUpdates(){
                     };
                     docClient.update(params, function(e, data){
                       if(e){
-                        console.log(e);
+                        return console.log(e);
                       } else {
                         console.log('Updated: ' + d.profileAddress + ' to: ' + currentStatus);
                         statusUpdateNotification(d.profileAddress, currentStatus, prevStatus);
@@ -1479,14 +1489,19 @@ function statusUpdates(){
                     });
                   }
               } else {
-                return console.log('Status not found.');
+                return console.log('Status not found');
               }
+            } else{
+              return;
             }
               });
+
             });
           }
-        })
+        });
+
   }
+
   var updateClass = {
     _updateBalanceSupporters : function(address) {
       var campaignCon = campaign.at(address);
@@ -1602,6 +1617,7 @@ function statusUpdates(){
       let blockNumber = web3.eth.blockNumber;
       let configFile = './config.json';
       let config = require(configFile);
+
       config.ETH.lastBlock = blockNumber;
       fs.writeFile(configFile, JSON.stringify(config, null, 2), function(e){
         if(e) return console.log('Unable to update Config File - ', e);
