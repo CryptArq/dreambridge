@@ -2079,45 +2079,39 @@ const fs = require('fs');
 const configFile = './config.json';
 
 const webSocketPath = 'wss://rinkeby.infura.io/ws'
-
-const web3 = new Web3(new Web3.providers.WebsocketProvider(webSocketPath));
-
+var provider = new Web3.providers.WebsocketProvider(webSocketPath);
+var web3 = new Web3(provider);
 var factoryDeployed ="0x4c3661c474041a150b54f53edd6b176cde726521";
-
 var factory = new web3.eth.Contract(factoryABI, factoryDeployed);
-
 const wei = 1000000000000000000;
-
 const config = require(configFile);
-
 const transporter = nodemailer.createTransport({
-
   host: 'dreambridge.io',
-
   port: 465,
-
   secure: true,
-
   auth: {
-
     user: 'donotreply@dreambridge.io',
-
     pass: 'bridgenotreplybot'
-
   },
-
   tls: {
-
     rejectUnauthorized: false
-
   }
-
-
-
 });
 
 
+provider.on('error', e => {
+  console.log('Websocket Error:', e);
+});
+provider.on('end', e => {
+  console.log('Connection Lost, attempting to reconnect...');
+  provider = new Web3.providers.WebsocketProvider(webSocketPath);
+  provider.on('connect', function(){
+    console.log('Reconnected...Reinitializing Listener.');
+    web3.setProvider(provider);
+    return init();
+  });
 
+});
 
 
 
@@ -2127,51 +2121,26 @@ go = init()
 
 
 function init(){
-
   console.log('Initializing Listener...');
-
-
-
-
-
 //Phase 1 Check Websocket Status
-
   console.log('\nPhase 1: Checking Connection\n');
-
   var listening = false;
-
   let version = null;
-
   var sync;
-
   web3.eth.isSyncing(function(e,d){
-
     if(!e && d === false){
-
       console.log('Syncing:',d);
-
       sync = clearInterval(sync);
-
     } else if (!e && d !== false){
-
       console.log('Node has not synced...Initialization Halting until Sync has Completed.');
-
       sync = setInterval(init, 15000);
-
       let highest = web3.eth.isSyncing.highestBlock;
-
       let current = web3.eth.isSyncing.currentBlock;
-
       let percent = ((current/highest)*100).toFixed(2);
-
       console.log('Syncing Block:', current, 'of', highest, '('+percent+'% Synced)');
-
       return;
-
     }
-
   });
-
   console.log('Web3 Version:', web3.version);
 
   if(web3.version !== undefined){
@@ -3175,11 +3144,7 @@ var updateClass = {
     web3.eth.getBlockNumber(function(e,blockNumber){
 
       if(e){
-
         return console.log('Error fetching BlockNumber');
-        listener = clearInterval(listener);
-        update = clearInterval(update);
-        initiateListener();
 
       } else {
 
