@@ -3177,6 +3177,9 @@ var updateClass = {
       if(e){
 
         return console.log('Error fetching BlockNumber');
+        listener = clearInterval(listener);
+        update = clearInterval(update);
+        initiateListener();
 
       } else {
 
