@@ -2142,669 +2142,327 @@ function init(){
     }
   });
   console.log('Web3 Version:', web3.version);
-
   if(web3.version !== undefined){
-
     version = web3.version;
-
   }
-
   web3.eth.net.isListening(function(e,d){
-
     if(!e){
-
       listening = d;
-
       console.log('Listening for peers?',listening);
-
       if(version !== null && version !== undefined && listening === true){
-
         console.log('Websocket Connected');
-
       } else {
-
         return console.log('Websocket Not Connected.');
-
       }
-
     }
-
   });
 
-
-
 //Phase 2 check for past Events
-
   console.log('\nPhase 2: Checking for Missed Events\n');
-
   web3.eth.getBlockNumber(function(e,blockNumber){
-
     if(!e){
-
       if(blockNumber > config.ETH.lastBlock){
-
         console.log('Last Block in Config:',config.ETH.lastBlock,'Current Block:', blockNumber, '\nListener is out of Sync by', blockNumber-config.ETH.lastBlock,'Blocks...\Checking Past Events');
-
         factory.getPastEvents('allEvents',{fromBlock:config.ETH.lastBlock, toBlock: 'latest'}, function(e,events){
-
           if(events.length > 0){
-
             console.log('Detected',events.length,'missed Events.\nCatching Up...');
-
             for(var i = 0; i < events.length; i++){
-
               let event = events[i].event;
-
               switch(event){
-
                 case 'campaignLaunched':
-
                   console.log('Campaign Launched:',events[i].returnValues._newCampaign);
-
                   MCP._insertToAWS(events[i]);
-
                   break;
-
                 case 'DonationMade':
-
                   console.log('Donation to:',web3.utils.fromWei(events[i].returnValues._amount));
-
                   updateClass._logDonation(web3.utils.fromWei(events[i].returnValues._amount));
-
                   MCP._donationNotification(events[i]);
-
               }
-
-
-
             }
-
             console.log('Past Events Handled');
-
             listener = initiateListener();
-
           } else {
-
             console.log('No Events were Missed.')
-
             listener = initiateListener();
-
           }
-
         });
-
       } else {
-
         console.log('Listener is up to Date.')
-
         listener = initiateListener();
-
       }
-
     } else {
-
       return;
-
     }
-
   })
-
-
-
-//Phase 3 Initiate Main Logic//
-
-
-
 }
-
-
-
 var MCP = {
-
   _insertToAWS : function(eventResult) {
-
     	var params = {
-
         TableName: profileTable,
-
         Key: {
-
           "profileAddress": eventResult.returnValues._newCampaign
-
         }
-
       };
-
       docClient.get(params, function(e,result){
-
         if(e){
-
     			return console.log(e);
-
     		} else {
-
           if (result.Item == undefined) {
-
     				var address = eventResult.returnValues._newCampaign;
-
     				let campaignCon = new web3.eth.Contract(campaignABI, address);
-
     				campaignCon.methods.campaignInformation().call(function(e, info){
-
     	    		var campaignAddress = address;
-
               var campaignDuration = info[4];
-
     	  			var campaignOwner = info[0];
-
     	  			var campaignName = info[1];
-
     	  			var campaignGoal = web3.utils.fromWei(info[2]);
-
     	  			var campaignRewardPool = info[5];
-
               var verCode = web3.utils.soliditySha3(address,Date.now(),campaignOwner,campaignName,address);
-
               var verString = web3.utils.sha3(verCode);
-
             	var params = {
-
     	  				TableName: profileTable,
-
     	  				Item: {
-
     							"profileAddress": campaignAddress,
-
     							"cStatus": "Open",
-
     							"cMajCategory": "General",
-
     							"cMinCategory" : "General",
-
     							"creationTx" : eventResult.transactionHash,
-
     							"updatedCategory" : false,
-
     							"updatedConnect" : false,
-
     							"updatedHeadline" : false,
-
     							"updatedLocation" : false,
-
     							"info": {
-
     								"campaignName": campaignName,
-
     								"campaignGoal": campaignGoal,
-
     								"campaignRewardPool" : campaignRewardPool,
-
     								"profileImage": encodeURIComponent("/static/img/coming_soon.png"),
-
     								"numberOfSupporters" : 0,
-
                     "campaignBalance": 0,
-
                     "timeRemaining": 0,
-
                     "campaignDuration": campaignDuration
-
     							},
-
                   "notifications": {
-
                     "email" : eventResult.returnValues._emails,
-
                     "donations" : false,
-
                     "statusChange" : false,
-
                     "paymentReady" : false,
-
                     "payments" : false,
-
                   },
-
                   "rewardInformation": {
-
                     "rewardCount" : 0,
-
                   },
-
                   "verificationSettings":{
-
                     "verificationString": verString,
-
                     "emailVerified": false,
-
-
-
                   },
-
                   "profileVisible" : true
-
     						}
-
     					}
-
     					docClient.put(params, function(e, data){
-
     						if(e){
-
     							return console.log(e);
-
     						} else {
-
     							console.log('Campaign Successfully Added, sending Welcome Packages.')
-
                   var messageOptions = {
-
                     from:'donotreply@dreambridge.io',
-
                     to:'cpeterson@dreambridge.io',
-
                     subject:'New Campaign Added: ' + eventResult.returnValues._newCampaign,
-
                     text: 'A New Campaign at Address: ' + eventResult.returnValues._newCampaign + ' has been Launched and Added to AWS on TX: ' + eventResult.transactionHash
-
                   }
-
                   transporter.sendMail(messageOptions, (error,info) => {
-
                     if(error){
-
                       return console.log(error);
-
                     } else {
-
                       return console.log('Welcome Pack 1/3: Addition Message Sent to MCP');
-
                     }
-
                   })
-
                   var messageOptions = {
-
                     from:'donotreply@dreambridge.io',
-
                     to: eventResult.returnValues._emails,
-
                     bcc: 'campaigns@dreambridge.io',
-
                     subject:'Your Dreambridge Campaign has been Launched!',
-
                     html: '<h3>Congratulations!</h3>' +
-
                       '\n<p><strong>Your Dreambridge Campaign has Successfully Launched!</strong></p>' +
-
                       '\n\n<p>Your Campaign, '+campaignName+', is now open for Donations at the following Address <a href="http://www.dreambridge.io/viewcampaign?address='+eventResult.returnValues._newCampaign+'">'+eventResult.returnValues._newCampaign+'</a></p>' +
-
                       '\n\n<strong>Now that your Campaign has been launched, here\'s a few things to help you get started!</strong>\n'+
-
                       '<ol>'+
-
                       '<li>Verify your Email Address to enable additional features for your Campaign!</li>'+
-
                         '<li><p>Stop over to the <a href="https://www.dreambridge.io/myprofile">My Profile</a> or <a href="http://www.dreambridge.io/viewcampaign?address='+eventResult.returnValues._newCampaign+'">Campaign Profile</a> to start building the Public Profile for your Campaign!</p></li>'+
-
                         '<li><p>Enable Notifications (in the <a href="https://www.dreambridge.io/myprofile">My Profile</a> section) to stay up to date on what\'s happening with your Campaign including Donations, Status Changes, and more!</p></li>' +
-
                         '<li><p>Start Promoting your Campaign and start Earning Ether!</p></li>' +
-
                       '</ol>' +
-
                       '\n\n<p>Additional information and a list of Frequently Asked Questions can be found on our <a href="https://www.dreambridge.io/faqs">FAQs</a> page and of course, if you have any questions or need assistance please feel free to contact us at support@dreambridge.io</p>' +
-
                       '\n\n<p>Thank you for choosing Dreambridge, we wish you the best of luck on your Campaign!</p>' +
-
                       '\n\n\n<p style="font-size: 0.75em;">This email, and any information contained within it, is meant solely for the eyes of the intended recipient. If you are receiving this email in error, please disregard and dispose of this email immediately.</p>',
-
                     text: 'Congratulations! Your Dreambridge Campaign has successfully Launched and is eligible to accept donations at the following Address: ' + eventResult.returnValues._newCampaign + '!\n Now that your Campaign has been Lauinched it\'s Time to take the next Steps on your Dreambridge Journey. First, be sure to build your Public Profile to tell the world a little bit about your Dream. \n Then it\'s time to get Promoting and spreading the word about your Campaign!\nVisit our Detailed Campaign Guide for more information, and please feel free to reach out to us with any questions you have about the process!\nYour Campaign was created on: ' + eventResult.transactionHash + '\n Thank you!\n Dreambridge Support'
-
                   }
-
                   transporter.sendMail(messageOptions, (error,info) => {
-
                     if(error){
-
                       return console.log(error);
-
                     } else {
-
                       return console.log('Welcome Pack 2/3: Creation Message Sent to User');
-
                     }
-
                   });
-
                   var messageOptions = {
-
                     from:'donotreply@dreambridge.io',
-
                     to: eventResult.returnValues._emails,
-
                     bcc: 'campaigns@dreambridge.io',
-
                     subject:'Please Verify your Contact Information',
-
                     html: '<h3>Greetings!</h3>' +
-
                       '\n<p><strong>Thank you for launching a Dreambridge Campaign!</strong></p>' +
-
                       '\n\n<p>Your Campaign, '+campaignName+', is now open for Donations! To enable additional features, like Notifications and Additional Supporter Rewards, you must verify your Email Address. Please use the code below to fill out our Verification form!</p>' +
-
                       '\n\n<strong>To Verify your Email Address you must have your Campaign\'s Address ('+address+'), your Email Address, the Verification Code (below), and you must use an <a href="https://www.dreambridge.io/guide#ethereum-providers">Ethereum Provider</a> with the Campaign Owner\'s Wallet you specified when you launched the Campaign!</strong>\n\nYour verification information is below!\n'+
-
                       '<ul>'+
-
                       '<li><p><strong>Your Verification Code is: </strong>'+verCode+'</p></li>'+
-
                         '<li><p>Please fill out our <a href="https://www.dreambridge.io/verify?address='+eventResult.returnValues._newCampaign+'">verification</a> form to verify your email address!</p></li>'+
-
                         '<li><p>You will need to supply your Campaign Address (which should automatically populate if you follow the baove link), your email address, and the verification code.</p></li>'+
-
                       '</ul>' +
-
                       '\n\n<p>Thank you for choosing Dreambridge, we wish you the best of luck on your Campaign!</p>' +
-
                       '\n\n\n<p style="font-size: 0.75em;">This email, and any information contained within it, is meant solely for the eyes of the intended recipient. If you are receiving this email in error, please disregard and dispose of this email immediately.</p>',
-
                     text: 'Congratulations! Your Dreambridge Campaign has successfully Launched and is eligible to accept donations at the following Address: ' + eventResult.returnValues._newCampaign + '!\n Now that your Campaign has been Lauinched it\'s Time to take the next Steps on your Dreambridge Journey. First, be sure to build your Public Profile to tell the world a little bit about your Dream. \n Then it\'s time to get Promoting and spreading the word about your Campaign!\nVisit our Detailed Campaign Guide for more information, and please feel free to reach out to us with any questions you have about the process!\nYour Campaign was created on: ' + eventResult.transactionHash + '\n Thank you!\n Dreambridge Support'
-
                   }
-
                   transporter.sendMail(messageOptions, (error,info) => {
-
                     if(error){
-
                       return console.log(error);
-
                     } else {
-
                       return console.log('Welcome Pack 3/3: Verification Message Sent to User');
-
                     }
-
                   });
-
     					}
-
     				});
-
           })
-
         } else {
-
           return console.log('Campaign Previously Added')
-
         }
-
       }
-
     });
-
   },
-
   _donationNotification: (eventResult) => {
-
     let campaign = eventResult.returnValues._campaign;
-
     let email = eventResult.returnValues._email;
-
     var donorEmail = eventResult.returnValues._donorEmail;
-
     var params = {
-
       TableName: profileTable,
-
       Key: {
-
         "profileAddress": campaign
-
       }
-
     };
-
     docClient.get(params, function(e,result){
-
       if(!e && result.Item != undefined){
-
         if(result.Item.notifications.donations == true){
-
           if(donorEmail !== 'null' && donorEmail !== undefined){
-
             var messageOptions = {
-
               from:'donotreply@dreambridge.io',
-
               to: email,
-
               subject:'Your Dreambridge Campaign has received a new Donation!',
-
               html: '<h3>Congratulations!</h3>' +
-
               '\n<p><strong>Your Campaign has Received a New Verified Donation!</strong></p>\n' +
-
               '<p>Verified Donations include an Email Address that Supporters have supplied. You may view this information in the <a href="https://www.dreambridge.io/myprofile">My Profile</a> section of our Site!</p>'+
-
               '<ul>' +
-
                 '<li>' +
-
                   '<p><strong>Campaign: </strong>' +result.Item.info.campaignName+ '</p>' +
-
                   '<p><strong>Donation Amount: </strong>' + web3.utils.fromWei(eventResult.returnValues._amount) + ' Ether </p>' +
-
                   '<p><strong>From: </strong>' + eventResult.returnValues._donor + '</p>' +
-
                   '<p><strong>To contact this Supporter about their Verified Donation, please visit the <a href="https://www.dreambridge.io/myprofile">My Profile</a></p>' +
-
                 '</li>' +
-
               '</ul>' +
-
               '\nYou can view this Donation on Etherscan <a href="https://rinkeby.etherscan.io/tx/'+eventResult.transactionHash+'">here</a>!' +
-
               '\n\n<p style="font-size: 0.75em;">To disable notifications, please visit the <a href="https://www.dreambridge.io/myprofile">My Profile</a> page to alter your Notification Settings.</p>' +
-
               '\n\n\n<p style="font-size: 0.75em;">This email, and any information contained within it, is meant solely for the eyes of the intended recipient. If you are receiving this email in error, please disregard and dispose of this email immediately.</p>',
-
               text: 'Congratulations!\n\nYour Campaign: ' + result.Item.info.campaignName + ' has received a new donation of ' + web3.utils.fromWei(eventResult.returnValues._amount)+' Ether!'
-
             }
-
           } else {
-
             var messageOptions = {
-
               from:'donotreply@dreambridge.io',
-
               to: email,
-
               subject:'Your Dreambridge Campaign has received a new Donation!',
-
               html: '<h3>Congratulations!</h3>' +
-
               '\n<p><strong>Your Campaign has Received a New Donation!</strong></p>' +
-
               '<ul>' +
-
                 '<li>' +
-
                   '<p><strong>Campaign: </strong>' +result.Item.info.campaignName+ '</p>' +
-
                   '<p><strong>Donation Amount: </strong>' + web3.utils.fromWei(eventResult.returnValues._amount) + ' Ether </p>' +
-
                   '<p><strong>From: </strong>' + eventResult.returnValues._donor + '!</p>' +
-
                 '</li>' +
-
               '</ul>' +
-
               '\nYou can view this Donation on Etherscan <a href="https://rinkeby.etherscan.io/tx/'+eventResult.transactionHash+'">here</a>!' +
-
               '\n\n<p style="font-size: 0.75em;">To disable notifications, please visit the <a href="https://www.dreambridge.io/myprofile">My Profile</a> page to alter your Notification Settings.</p>' +
-
               '\n\n\n<p style="font-size: 0.75em;">This email, and any information contained within it, is meant solely for the eyes of the intended recipient. If you are receiving this email in error, please disregard and dispose of this email immediately.</p>',
-
               text: 'Congratulations!\n\nYour Campaign: ' + result.Item.info.campaignName + ' has received a new donation of ' + web3.utils.fromWei(eventResult.returnValues._amount)+' Ether!'
-
             }
-
           }
-
-
-
           transporter.sendMail(messageOptions, (error,info) => {
-
             if(error){
-
               return console.log(error);
-
             } else {
-
-
-
                 return console.log('Donation Notification Sent for: ' + eventResult.returnValues._campaign);
-
             }
-
         });
-
       } else {return;}
-
     } else {
-
       return;
-
     }
-
     });
-
-
-
   },
-
   _statusUpdateNotification: (address, status, previous) => {
-
       var params = {
-
         TableName: profileTable,
-
         Key: {
-
           "profileAddress": address
-
         }
-
       };
-
       console.log('Checking Status Notifications for: ' + address)
-
       docClient.get(params, function(e,d) {
-
         if(!e){
-
           if(status == 'Payment Ready'){
-
             if(d.Item.notifications.paymentReady == true){
-
               var messageOptions = {
-
                 from:'donotreply@dreambridge.io',
-
                 to: d.Item.notifications.email,
-
                 subject:'Your Dreambridge Campaign is Ready for Payment!',
-
                 html: '<h3>The Moment has Arrived!</h3>' +
-
                 '\n<p><strong>Your Campaign '+d.Item.info.campaignName+' has run its duration and is ready to be paid out!</strong></p>' +
-
                 '\nIf you <strong>HAVE</strong> selected "Automatic Payments" and have Payment Notifications enabled, you will receive an email with your Payment Confirmation shortly!' +
-
                 '\nIf you <strong>HAVE NOT</strong> selected "Automatic Payments, please visit the <a href="https://www.dreambridge.io/myprofile">My Profile</a> page to complete your Campaign!' +
-
                 '\n\n<p style="font-size: 0.75em;">To disable notifications, please visit the <a href="https://www.dreambridge.io/myprofile">My Profile</a> page to alter your Notification Settings.</p>' +
-
                 '\n\n\n<p style="font-size: 0.75em;">This email, and any information contained within it, is meant solely for the eyes of the intended recipient. If you are receiving this email in error, please disregard and dispose of this email immediately.</p>'
-
               }
-
               transporter.sendMail(messageOptions, (error,info) => {
-
                 if(error){
-
                   console.log(error);
-
                 } else {
-
                   console.log('Payment Ready Notification sent for: ' + address);
-
                 }
-
               });
-
             } else {
-
               return;
-
             }
-
           } else {
-
             if(d.Item.notifications.statusChange == true){
-
               var messageOptions = {
-
                 from:'donotreply@dreambridge.io',
-
                 to: d.Item.notifications.email,
-
                 subject:'Your Dreambridge Campaign\'s Status has Changed!',
-
                 html: '<h3>For Your Reference!</h3>' +
-
                 '\n<p><strong>Your Campaign has changed statuses!</strong></p>' +
-
                 '\nWe are notifying you that your Campaign: <a href="https://www.dreambridge.io/viewcampaign?address=' + address + '">'+d.Item.info.campaignName+'</a> has Changed status from: <strong>' + previous + '</strong> to: <strong>' + status + '</strong>' +
-
                 '\n\n<p style="font-size: 0.75em;">To disable notifications, please visit the <a href="https://www.dreambridge.io/myprofile">My Profile</a> page to alter your Notification Settings.</p>' +
-
                 '\n\n\n<p style="font-size: 0.75em;">This email, and any information contained within it, is meant solely for the eyes of the intended recipient. If you are receiving this email in error, please disregard and dispose of this email immediately.</p>'
-
               }
-
               transporter.sendMail(messageOptions, (error,info) => {
-
                 if(error){
-
                   console.log(error);
-
                 } else {
-
                   console.log('Status Change Notification sent for: ' + address);
-
                 }
-
               });
-
             } else {
-
               return;
-
             }
-
           }
-
         }
-
       });
-
   },
-
-
-
   }
 
 
