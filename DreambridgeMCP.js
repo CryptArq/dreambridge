@@ -30,1150 +30,578 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 
 
 
-var factoryABI =[
-
+var factoryABI = [
 	{
-
-		"anonymous": false,
-
-		"inputs": [
-
-			{
-
-				"indexed": true,
-
-				"name": "_campaign",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"indexed": true,
-
-				"name": "_owner",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_payoutAmount",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_numberOfDonors",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_email",
-
-				"type": "string"
-
-			}
-
-		],
-
-		"name": "CampaignFinished",
-
-		"type": "event"
-
-	},
-
-	{
-
-		"constant": false,
-
-		"inputs": [
-
-			{
-
-				"name": "_campaign",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"name": "_donorIndex",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"name": "_totalDonors",
-
-				"type": "uint256"
-
-			}
-
-		],
-
-		"name": "additionalPayout",
-
-		"outputs": [],
-
-		"payable": false,
-
-		"stateMutability": "nonpayable",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": false,
-
-		"inputs": [
-
-			{
-
-				"name": "_campaign",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"name": "_owner",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"name": "_payoutAmount",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"name": "_numberOfDonors",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"name": "_email",
-
-				"type": "string"
-
-			}
-
-		],
-
-		"name": "campaignFinishedEmitter",
-
-		"outputs": [],
-
-		"payable": false,
-
-		"stateMutability": "nonpayable",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": false,
-
-		"inputs": [
-
-			{
-
-				"name": "_owner",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"name": "_name",
-
-				"type": "string"
-
-			},
-
-			{
-
-				"name": "_goal",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"name": "_duration",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"name": "_rewardPool",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"name": "_auto",
-
-				"type": "bool"
-
-			},
-
-			{
-
-				"name": "_email",
-
-				"type": "string"
-
-			}
-
-		],
-
-		"name": "deployNewContract",
-
-		"outputs": [
-
-			{
-
-				"name": "newContract",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "nonpayable",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": false,
-
-		"inputs": [
-
-			{
-
-				"name": "_campaign",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"name": "_owner",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"name": "_donor",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"name": "_value",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"name": "_email",
-
-				"type": "string"
-
-			},
-
-			{
-
-				"name": "_donorEmail",
-
-				"type": "string"
-
-			}
-
-		],
-
-		"name": "donationEmitter",
-
-		"outputs": [],
-
-		"payable": false,
-
-		"stateMutability": "nonpayable",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"inputs": [
-
-			{
-
-				"name": "_pAdd",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "nonpayable",
-
-		"type": "constructor"
-
-	},
-
-	{
-
-		"anonymous": false,
-
-		"inputs": [
-
-			{
-
-				"indexed": true,
-
-				"name": "_owner",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_newCampaign",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_emails",
-
-				"type": "string"
-
-			}
-
-		],
-
-		"name": "campaignLaunched",
-
-		"type": "event"
-
-	},
-
-	{
-
-		"anonymous": false,
-
-		"inputs": [
-
-			{
-
-				"indexed": true,
-
-				"name": "_campaign",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_donorIndex",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_totalDonors",
-
-				"type": "uint256"
-
-			}
-
-		],
-
-		"name": "AdditionalPayoutNeeded",
-
-		"type": "event"
-
-	},
-
-	{
-
-		"anonymous": false,
-
-		"inputs": [
-
-			{
-
-				"indexed": true,
-
-				"name": "_campaign",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"indexed": true,
-
-				"name": "_owner",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"indexed": true,
-
-				"name": "_donor",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_amount",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_email",
-
-				"type": "string"
-
-			},
-
-			{
-
-				"indexed": false,
-
-				"name": "_donorEmail",
-
-				"type": "string"
-
-			}
-
-		],
-
-		"name": "DonationMade",
-
-		"type": "event"
-
-	},
-
-	{
-
 		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "_address",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "addressIsCampaign",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "bool"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "autopayment",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "bool"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "campaignIdentifier",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "uint256"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "_campaign",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "checkActive",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "bool"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "_owner",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "checkActiveCampaignCount",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "uint256"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
 		"inputs": [],
-
 		"name": "getActiveCampaignCount",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
-		"constant": true,
-
-		"inputs": [],
-
-		"name": "getActiveCampaigns",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "address[]"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [],
-
-		"name": "getContractCount",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "uint256"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
+		"constant": false,
 		"inputs": [
-
 			{
-
-				"name": "_caller",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "getDonations",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "uint256[]"
-
-			},
-
-			{
-
-				"name": "",
-
-				"type": "address[]"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "_owner",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "getOwnerActiveCampaign",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "_owner",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "getOwnerCampaigns",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "address[]"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "lastRequestSender",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "uint256"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "ownerCampaignCount",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "uint256"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [
-
-			{
-
 				"name": "_campaign",
-
 				"type": "address"
-
-			}
-
-		],
-
-		"name": "paymentReady",
-
-		"outputs": [
-
+			},
 			{
-
-				"name": "",
-
-				"type": "bool"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [],
-
-		"name": "paymentReadyCampaigns",
-
-		"outputs": [
-
+				"name": "_owner",
+				"type": "address"
+			},
 			{
-
-				"name": "",
-
-				"type": "address[]"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
-		"inputs": [],
-
-		"name": "paymentReadyCount",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
+				"name": "_payoutAmount",
 				"type": "uint256"
-
+			},
+			{
+				"name": "_numberOfDonors",
+				"type": "uint256"
+			},
+			{
+				"name": "_email",
+				"type": "string"
 			}
-
 		],
-
+		"name": "campaignFinishedEmitter",
+		"outputs": [],
 		"payable": false,
-
-		"stateMutability": "view",
-
+		"stateMutability": "nonpayable",
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [
-
 			{
-
-				"name": "",
-
-				"type": "uint256"
-
+				"name": "_donor",
+				"type": "address"
 			}
-
 		],
-
-		"name": "platformCampaigns",
-
+		"name": "getDonations",
 		"outputs": [
-
 			{
-
-				"name": "ownerAddress",
-
-				"type": "address"
-
+				"name": "",
+				"type": "uint256[]"
 			},
-
 			{
-
-				"name": "campaignAddress",
-
-				"type": "address"
-
-			},
-
-			{
-
-				"name": "campaignGoal",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"name": "campaignDuration",
-
-				"type": "uint256"
-
-			},
-
-			{
-
-				"name": "rewardPoolPercent",
-
-				"type": "uint256"
-
+				"name": "",
+				"type": "address[]"
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_owner",
+				"type": "address"
+			}
+		],
+		"name": "getOwnerActiveCampaign",
+		"outputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_campaign",
+				"type": "address"
+			},
+			{
+				"name": "_donorIndex",
+				"type": "uint256"
+			},
+			{
+				"name": "_totalDonors",
+				"type": "uint256"
+			}
+		],
+		"name": "additionalPayout",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "autopayment",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_owner",
+				"type": "address"
+			}
+		],
+		"name": "checkActiveCampaignCount",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "platformCampaigns",
+		"outputs": [
+			{
+				"name": "ownerAddress",
+				"type": "address"
+			},
+			{
+				"name": "campaignAddress",
+				"type": "address"
+			},
+			{
+				"name": "campaignGoal",
+				"type": "uint256"
+			},
+			{
+				"name": "campaignDuration",
+				"type": "uint256"
+			},
+			{
+				"name": "rewardPoolPercent",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_campaign",
+				"type": "address"
+			}
+		],
+		"name": "paymentReady",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "paymentReadyCampaigns",
+		"outputs": [
+			{
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getContractCount",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "ownerCampaignCount",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "addressIsCampaign",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "lastRequestSender",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "paymentReadyCount",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_owner",
+				"type": "address"
+			}
+		],
+		"name": "getOwnerCampaigns",
+		"outputs": [
+			{
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "campaignIdentifier",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getActiveCampaigns",
+		"outputs": [
+			{
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_owner",
+				"type": "address"
+			},
+			{
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"name": "_goal",
+				"type": "uint256"
+			},
+			{
+				"name": "_duration",
+				"type": "uint256"
+			},
+			{
+				"name": "_rewardPool",
+				"type": "uint256"
+			},
+			{
+				"name": "_auto",
+				"type": "bool"
+			},
+			{
+				"name": "_email",
+				"type": "string"
+			}
+		],
+		"name": "deployNewContract",
+		"outputs": [
+			{
+				"name": "newContract",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_campaign",
+				"type": "address"
+			},
+			{
+				"name": "_owner",
+				"type": "address"
+			},
+			{
+				"name": "_donor",
+				"type": "address"
+			},
+			{
+				"name": "_value",
+				"type": "uint256"
+			},
+			{
+				"name": "_email",
+				"type": "string"
+			},
+			{
+				"name": "_donorEmail",
+				"type": "string"
+			}
+		],
+		"name": "donationEmitter",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_campaign",
+				"type": "address"
+			}
+		],
+		"name": "checkActive",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"name": "_pAdd",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_owner",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "_newCampaign",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "_emails",
+				"type": "string"
+			}
+		],
+		"name": "campaignLaunched",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_campaign",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "_owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "_donor",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "_email",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"name": "_donorEmail",
+				"type": "string"
+			}
+		],
+		"name": "DonationMade",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_campaign",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "_donorIndex",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "_totalDonors",
+				"type": "uint256"
+			}
+		],
+		"name": "AdditionalPayoutNeeded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "_campaign",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "_owner",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "_payoutAmount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "_numberOfDonors",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "_email",
+				"type": "string"
+			}
+		],
+		"name": "CampaignFinished",
+		"type": "event"
 	}
-
 ]
 
 
@@ -1181,895 +609,434 @@ var factoryABI =[
 /////CAMPAIGN ABI/////
 
 var campaignABI =[
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "currentState",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "uint8"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": false,
-
 		"inputs": [
-
 			{
-
 				"name": "_from",
-
 				"type": "address"
-
 			},
-
 			{
-
 				"name": "_value",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "_email",
-
 				"type": "string"
-
 			}
-
 		],
-
 		"name": "acceptDonation",
-
 		"outputs": [],
-
 		"payable": true,
-
 		"stateMutability": "payable",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "getNumberOfDonors",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "campaignInformation",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "address"
-
 			},
-
 			{
-
 				"name": "",
-
 				"type": "string"
-
 			},
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "",
-
 				"type": "uint8"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "campaignPaymentReady",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "bool"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "CampaignDetails",
-
 		"outputs": [
-
 			{
-
 				"name": "campaignName",
-
 				"type": "string"
-
 			},
-
 			{
-
 				"name": "campaignDuration",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "campaignExpiry",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "campaignCreation",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "rewardPoolPercent",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "campaignGoal",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "amountRaised",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "RP",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "platformFee",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "beneficiaryReceived",
-
 				"type": "uint256"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "checkDonorPayoutStatus",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "bool"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "getOwnerEmail",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "string"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "campaignOpen",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "bool"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [
-
 			{
-
 				"name": "",
-
 				"type": "address"
-
 			}
-
 		],
-
 		"name": "donorID",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": false,
-
 		"inputs": [],
-
 		"name": "finishCampaign",
-
 		"outputs": [],
-
 		"payable": false,
-
 		"stateMutability": "nonpayable",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": false,
-
 		"inputs": [
-
 			{
-
 				"name": "_donor",
-
 				"type": "address"
-
 			}
-
 		],
-
 		"name": "refundDonor",
-
 		"outputs": [],
-
 		"payable": false,
-
 		"stateMutability": "nonpayable",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [
-
 			{
-
 				"name": "",
-
 				"type": "address"
-
 			}
-
 		],
-
 		"name": "donorPaid",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "bool"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [
-
 			{
-
 				"name": "",
-
 				"type": "address"
-
 			}
-
 		],
-
 		"name": "lastRequestSender",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
-		"inputs": [
-
-			{
-
-				"name": "_address",
-
-				"type": "address"
-
-			}
-
-		],
-
-		"name": "lockTimeRemaining",
-
-		"outputs": [
-
-			{
-
-				"name": "",
-
-				"type": "uint256"
-
-			}
-
-		],
-
-		"payable": false,
-
-		"stateMutability": "view",
-
-		"type": "function"
-
-	},
-
-	{
-
-		"constant": true,
-
 		"inputs": [],
-
 		"name": "getDonorArray",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "address[]"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "getTimeRemaining",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [
-
 			{
-
 				"name": "_donor",
-
 				"type": "address"
-
 			}
-
 		],
-
 		"name": "getVerifiedDonorEmail",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "string"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [],
-
 		"name": "campaignStatus",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "uint8"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"constant": true,
-
 		"inputs": [
-
 			{
-
 				"name": "",
-
 				"type": "address"
-
 			}
-
 		],
-
 		"name": "amountDonated",
-
 		"outputs": [
-
 			{
-
 				"name": "",
-
 				"type": "uint256"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "view",
-
 		"type": "function"
-
 	},
-
 	{
-
 		"inputs": [
-
 			{
-
 				"name": "_owner",
-
 				"type": "address"
-
 			},
-
 			{
-
 				"name": "_name",
-
 				"type": "string"
-
 			},
-
 			{
-
 				"name": "_arbiter",
-
 				"type": "address"
-
 			},
-
 			{
-
 				"name": "_goal",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "_duration",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "_rewardPool",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "_platformFee",
-
 				"type": "uint256"
-
 			},
-
 			{
-
 				"name": "_factory",
-
 				"type": "address"
-
 			},
-
 			{
-
 				"name": "_autoPayout",
-
 				"type": "bool"
-
 			},
-
 			{
-
 				"name": "_ownerEmail",
-
 				"type": "string"
-
 			},
-
 			{
-
 				"name": "_paymentAddress",
-
 				"type": "address"
-
 			}
-
 		],
-
 		"payable": false,
-
 		"stateMutability": "nonpayable",
-
 		"type": "constructor"
-
 	},
-
 	{
-
 		"payable": true,
-
 		"stateMutability": "payable",
-
 		"type": "fallback"
-
 	}
-
 ]
 
 
 
 const campaignStatusM = ["Open", "Pending Completion", "Payment Ready", "Finished", "Suspended", "Derelict"];
-
+const retryCounter = 0;
 const Web3 = require('web3');
 
 const nodemailer = require('nodemailer');
@@ -2077,14 +1044,17 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 
 const configFile = './config.json';
-
-const webSocketPath = 'wss://rinkeby.infura.io/ws'
+var syncing = true;
+const webSocketPath = 'wss://mainnet.infura.io/ws'
+//const webSocketPath = 'wss://rinkeby.infura.io/ws'
+//const webSocketPath = 'http://localhost:8546'
 var provider = new Web3.providers.WebsocketProvider(webSocketPath);
 var web3 = new Web3(provider);
-var factoryDeployed ="0x4c3661c474041a150b54f53edd6b176cde726521";
+var factoryDeployed ="0xf5E8B28611e9E689f4481AB6724ad26D0993d9B9";
 var factory = new web3.eth.Contract(factoryABI, factoryDeployed);
 const wei = 1000000000000000000;
-const config = require(configFile);
+//const config = require(configFile);
+var config = fs.readFileSync(configFile, 'utf8');
 const transporter = nodemailer.createTransport({
   host: 'dreambridge.io',
   port: 465,
@@ -2101,64 +1071,86 @@ const transporter = nodemailer.createTransport({
 
 provider.on('error', e => {
   console.log('Websocket Error:', e);
-});
-provider.on('end', e => {
   console.log('Connection Lost, attempting to reconnect...');
   provider = new Web3.providers.WebsocketProvider(webSocketPath);
   provider.on('connect', function(){
     console.log('Reconnected...Reinitializing Listener.');
-    web3.setProvider(provider);
-    return init();
   });
-
+  web3.setProvider(provider);
+  init();
+});
+provider.on('end', e => {
+    console.log('Connection Lost, attempting to reconnect...');
+    provider = new Web3.providers.WebsocketProvider(webSocketPath);
+    provider.on('connect', function(){
+      console.log('Reconnected...Reinitializing Listener.');
+  });
+  web3.setProvider(provider);
+  init();
 });
 
 
 
 
-go = init()
+go = init();
 
 
 
-function init(){
+function init() {
   console.log('Initializing Listener...');
 //Phase 1 Check Websocket Status
-  console.log('\nPhase 1: Checking Connection\n');
+  console.log('\nPhase 1: Checking Required Things\n');
   var listening = false;
   let version = null;
   var sync;
   web3.eth.isSyncing(function(e,d){
     if(!e && d === false){
-      console.log('Syncing:',d);
       sync = clearInterval(sync);
+      syncing = false;
     } else if (!e && d !== false){
       console.log('Node has not synced...Initialization Halting until Sync has Completed.');
-      sync = setInterval(init, 15000);
-      let highest = web3.eth.isSyncing.highestBlock;
-      let current = web3.eth.isSyncing.currentBlock;
-      let percent = ((current/highest)*100).toFixed(2);
-      console.log('Syncing Block:', current, 'of', highest, '('+percent+'% Synced)');
-      return;
+          let highest = d.highestBlock;
+          let current = d.currentBlock;
+          let percent = ((current/highest)*100).toFixed(2);
+          console.log('Syncing Block:', current, 'of', highest, '('+percent+'% Synced)');
+          if(syncing === false){
+            sync = setInterval(init,15000);
+            syncing = true;
+          }
+          return;
     }
   });
+
+  //Check the config file.
+  /*if(config.length > 0){
+    try{
+      config = JSON.parse(config);
+      if(config.hasOwnProperty('ETH') && config.hasOwnProperty('log')){
+        console.log('Config File Ok.');
+        phase2()
+      } else {
+        initializeConfig();
+      }
+    } catch(err){
+      initializeConfig();
+    }
+  } else {
+    initializeConfig();
+  }
+*/
+
   console.log('Web3 Version:', web3.version);
   if(web3.version !== undefined){
     version = web3.version;
   }
-  web3.eth.net.isListening(function(e,d){
-    if(!e){
-      listening = d;
-      console.log('Listening for peers?',listening);
-      if(version !== null && version !== undefined && listening === true){
-        console.log('Websocket Connected');
-      } else {
-        return console.log('Websocket Not Connected.');
-      }
-    }
-  });
+  initializeConfig();
 
-//Phase 2 check for past Events
+}
+
+function phase2() {
   console.log('\nPhase 2: Checking for Missed Events\n');
+  config = fs.readFileSync(configFile, 'utf8');
+  config = JSON.parse(config, null, 2)
   web3.eth.getBlockNumber(function(e,blockNumber){
     if(!e){
       if(blockNumber > config.ETH.lastBlock){
@@ -2191,7 +1183,19 @@ function init(){
         listener = initiateListener();
       }
     } else {
-      return;
+      console.log('Failed to get Block Number, trying again...');
+      retryCounter ++;
+      if(retryCounter >= 5){
+        provider = new Web3.providers.WebsocketProvider(webSocketPath);
+        provider.on('connect', function(){
+          console.log('Reconnected...Reinitializing....');
+        });
+        web3.setProvider(provider);
+        retryCounter = 0;
+        init();
+      } else{
+        init();
+      }
     }
   })
 }
@@ -2468,436 +1472,315 @@ var MCP = {
 
 
   function _statusUpdates() {
-
             updateClass._updateConfig();
-
                 var params = {
-
                     TableName: profileTable,
-
                     ProjectionExpression: "profileAddress, cStatus"
-
                   }
-
                 docClient.scan(params, function(e,r){
-
                   if(!e){
-
                     var resultCount = 0;
-
                     r.Items.forEach(function(d){
-
                       let campaignCon = new web3.eth.Contract(campaignABI, d.profileAddress);
-
                       campaignCon.methods.campaignStatus().call(function(e,status){
-
                       if(!e && status){
-
                       if (status !== 'undefined'){
-
                       var currentStatus = campaignStatusM[status];
-
                       if(currentStatus !== 'Finished'){
-
                         updateClass._updateBalanceSupporters(d.profileAddress);
-
                       }
-
                       updateClass._updateTimeRemaining(d.profileAddress);
 
-
-
                         if(d.cStatus !== currentStatus){
-
                           var prevStatus = d.cStatus;
-
                           var params = {
-
                           TableName: profileTable,
-
                           Key:{
-
                             "profileAddress": d.profileAddress,
-
                           },
-
                           UpdateExpression: "SET cStatus = :1",
-
                           ExpressionAttributeValues: {":1" : currentStatus},
-
                           ReturnValues:"UPDATED_NEW"
-
                         };
-
                         docClient.update(params, function(e, data){
-
                           if(e){
-
                             return console.log('Error',d.profileAddress);
-
                           } else {
-
                             console.log('Updated: ' + d.profileAddress + ' to: ' + currentStatus);
-
                             MCP._statusUpdateNotification(d.profileAddress, currentStatus, prevStatus);
-
                           }
-
                         });
-
                       }
-
                   } else {
-
                     return console.log('Status not found');
-
                   }
-
                 } else{
-
                   return;
-
                 }
-
                   });
-
-
-
                 });
-
               }
-
             });
-
-
+        //Chain Additional Sync Functions
 
       }
-
-
-
 var updateClass = {
-
   _updateBalanceSupporters : function(address) {
-
     let campaignCon = new web3.eth.Contract(campaignABI, address);
-
     campaignCon.methods.campaignInformation().call(function(e,d){
-
       if(!e && d !== 'undefined'){
-
         var params = {
-
           TableName: profileTable,
-
           Key: {
-
             "profileAddress": address
-
           }
-
         };
-
       docClient.get(params, function(e,info) {
-
           if(!e && info.Item !== 'undefined'){
-
             var cSupporters = info.Item.info.numberOfSupporters;
-
             var cBalance = info.Item.info.campaignBalance;
-
             var balance, supporters, duration;
-
             balance = d[3];
-
             supporters = d[6];
-
             duration = d[4];
-
             if (info.Item.info.campaignDuration !== 'undefined' && info.Item.info.campaignDuration > 0) {
-
-
-
             } else {
-
               var params = {
-
               TableName: profileTable,
-
               Key:{
-
                 "profileAddress": address,
-
               },
-
               UpdateExpression: "SET info.campaignDuration = :1",
-
               ExpressionAttributeValues: {":1" : duration},
-
               ReturnValues:"UPDATED_NEW"
-
               };
-
               docClient.update(params, function(e, data){
-
                 if(e){
-
                   return console.log(e);
-
                 } else {
-
                   return console.log('Updated Duration for: '+ address);
-
                 }
-
               });
-
             }
-
             if(cBalance == balance && cSupporters == supporters){
-
               return;
-
             } else {
-
             var params = {
-
             TableName: profileTable,
-
             Key:{
-
               "profileAddress": address,
-
             },
-
             UpdateExpression: "SET info.campaignBalance = :1, info.numberOfSupporters = :2",
-
             ExpressionAttributeValues: {":1" : balance, ":2" : supporters},
-
             ReturnValues:"UPDATED_NEW"
-
             };
-
             docClient.update(params, function(e, data){
-
               if(e){
-
                 return console.log(e);
-
               } else {
-
                 return console.log('Updated Balance and Supporters for '+ address);
-
               }
-
             });
-
           }
-
         } else {
-
           return;
-
         }
-
         });
-
       } else {
-
         return;
-
       }
-
     });
-
   },
-
   _updateTimeRemaining : (address) => {
-
     let campaignCon = new web3.eth.Contract(campaignABI, address);
-
     campaignCon.methods.campaignInformation().call(function(e,d){
-
       if(!e && d !== 'undefined'){
-
         var timeRemaining = d[8];
-
         var status = campaignStatusM[d[9]];
-
         var params = {
-
           TableName: profileTable,
-
           Key: {
-
             "profileAddress": address
-
           }
-
         };
-
       docClient.get(params, function(e,info) {
-
           if(!e && info.Item !== 'undefined'){
-
             if(status === 'Finished' || status === 'Derelict'){
-
               timeRemaining = 0;
-
             } else {
-
               var params = {
-
               TableName: profileTable,
-
               Key:{
-
                 "profileAddress": address,
-
               },
-
               UpdateExpression: "SET info.timeRemaining = :1",
-
               ExpressionAttributeValues: {":1" : timeRemaining},
-
               ReturnValues:"UPDATED_NEW"
-
               };
-
               docClient.update(params, function(e, data){
-
                 if(e){
-
                   return console.log(e);
-
                 } else {
-
                   return;
-
                 }
-
               });
-
             }
-
           } else {
-
             return console.log(e);
-
           }
-
         });
-
       } else {
-
         return console.log(e);
-
       }
-
     });
-
   },
-
   _updateConfig: () => {
-
     web3.eth.getBlockNumber(function(e,blockNumber){
-
       if(e){
-        return console.log('Error fetching BlockNumber');
-
+        console.log('Error fetching BlockNumber');
+        console.log('Connection Lost, attempting to reconnect...');
+        provider = new Web3.providers.WebsocketProvider(webSocketPath);
+        provider.on('connect', function(){
+          console.log('Reconnected...Reinitializing Listener.');
+      });
+      web3.setProvider(provider);
+      init();
       } else {
-
         config.ETH.lastBlock = blockNumber;
-
         fs.writeFile(configFile, JSON.stringify(config, null, 2), function(e){
-
           if(e) return console.log('Unable to update Config File - ', e);
-
         });
-
       }
-
   });
-
 },
+ _attemptReconnect: () => {
 
+ },
   _logDonation: (amount) => {
-
     let _amount = parseFloat(amount);
-
     config.log.Donations += _amount;
-
     fs.writeFile(configFile, JSON.stringify(config, null, 2), function(e){
-
       if(e) return console.log('Unable to update Config File - ', e);
-
     });
-
   },
-
   _logDate: () => {
-
     let date = new Date();
-
     date = date.toString();
-
     config.log.listenerStarted = date;
-
     fs.writeFile(configFile, JSON.stringify(config, null, 2), function(e){
-
       if(e) return console.log('Unable to update Config File - ', e);
-
     });
-
+  }
+};
+function initializeConfig() {
+  console.log('Checking Config File.')
+  if(config.length > 0){
+    try{
+      config = JSON.parse(config);
+      if(config.hasOwnProperty('ETH') && config.hasOwnProperty('log')){
+          console.log('Config File Ok');
+          phase2();
+      } else {
+        console.log('Config File Improperly Formatted...Fixing (Condition 1)');
+        web3.eth.getBlockNumber(function(e,d){
+          try{
+            console.log(d)
+            var baseConfig = '{"ETH":{"lastBlock":'+(d-100)+'},"log":{"Donations": 0, "listenerStarted" : ""}}'
+            fs.writeFileSync(configFile, baseConfig);
+              console.log('Config Initialized');
+              phase2();
+          } catch(e){
+            initializeConfig();
+          }
+        });
+      }
+    } catch(err){
+      console.log('Config File Improperly Formatted...Fixing (Condition 2)');
+      web3.eth.getBlockNumber(function(e,d){
+        try{
+          var baseConfig = '{"ETH":{"lastBlock":'+(d-100)+'},"log":{"Donations": 0, "listenerStarted" : ""}}'
+          fs.writeFileSync(configFile, baseConfig);
+          console.log('Config Initialized');
+          phase2();
+        } catch(e){
+          initializeConfig();
+        }
+      });
+    }
+  } else {
+    console.log('Config File Improperly Formatted...Fixing (Condition: 3)');
+    web3.eth.getBlockNumber(function(e,d){
+      try{
+        var baseConfig = '{"ETH":{"lastBlock":'+(d-100)+'},"log":{"Donations": 0, "listenerStarted" : ""}}'
+        fs.writeFileSync(configFile, baseConfig);
+          console.log('Config Initialized');
+          phase2();
+      } catch(e){
+        initializeConfig();
+      }
+    });
   }
 
-};
-
-
-
-function initiateListener() {
-
-  console.log('\n\nPhase 3: Starting Main Application\n\n');
-
-  updateClass._logDate();
-
-  update = setInterval(_statusUpdates,15000);
-
-  listener = setInterval(listening, 30000);
-
-
-
-  console.log('Listener Initiated');
-
-
-
-  factory.events.allEvents().on('data', event => {
-
-    let foundEvent = event.event;
-
-    switch(foundEvent){
-
-      case 'campaignLaunched':
-
-      console.log('Campaign Launched:',event.returnValues._newCampaign);
-
-        MCP._insertToAWS(event);
-
-        break;
-
-      case 'DonationMade':
-
-        console.log('Donation to:',event.returnValues._campaign,'-',web3.utils.fromWei(event.returnValues._amount),'Ether');
-
-        updateClass._logDonation(web3.utils.fromWei(event.returnValues._amount));
-
-        MCP._donationNotification(event);
-
-    }
-
-  });
 
 }
+function initiateListener() {
+  console.log('\n\nPhase 3: Starting Main Application\n\n');
+  updateClass._logDate();
+  update = setInterval(_statusUpdates,15000);
+  pr = setInterval(checkPaymentReady, 7200000);
+  listener = setInterval(listening, 30000);
+  let date = Date();
+  console.log('Listener Started:', date.toString());
+  factory.events.allEvents(function(e,d){
+    if(!e){
+      let foundEvent = d.event;
+      switch(foundEvent){
+        case 'campaignLaunched':
+        console.log('Campaign Launched:',d.returnValues._newCampaign);
+          MCP._insertToAWS(d);
+          break;
+        case 'DonationMade':
+          console.log('Donation to:',d.returnValues._campaign,'-',web3.utils.fromWei(d.returnValues._amount),'Ether');
+          updateClass._logDonation(web3.utils.fromWei(d.returnValues._amount));
+          MCP._donationNotification(d);
+      }
+    }
+  });
+}
 
+
+function checkPaymentReady(){
+  console.log('Checking for Payment Ready Campaigns')
+  factory.methods.paymentReadyCampaigns().call(function(e,r){
+    if(!e && r.length > 0){
+      var paymentReadyCampaigns = ""
+      for(var i = 0; i < r.length; i++){
+        factory.methods.autopayment().call(r[i], function(e,d){
+          if(!e && d===true){
+            paymentReadyCampaigns += '<li>'+r[i]+'</li>';
+          }
+        });
+      }
+      var messageOptions = {
+        from:'donotreply@dreambridge.io',
+        to:'cpeterson@dreambridge.io',
+        subject:'New Payment Ready Campaigns',
+        text: 'Dreambridge has '+r.length+' new Payment Ready Campaigns, please log in and execute the Payout Function.\n\nThe following Campaigns are in a Payment Ready Status\n' +
+        '<ul>'+paymentReadyCampaigns+'</ul>'
+      }
+      transporter.sendMail(messageOptions, (error,info) => {
+        if(error){
+          return console.log(error);
+        } else {
+          return console.log('Welcome Pack 1/3: Addition Message Sent to MCP');
+        }
+      })
+    } else if(!e && r === 0) {
+      console.log('No Payment Ready Campaigns')
+    }
+    });
+
+}
 
 
 function listening() {
