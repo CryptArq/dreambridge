@@ -16,7 +16,7 @@
         return result;
     }
 
-
+    
     ///Function to find and return the percent that X is of Y. Returns a number that 'represents' a percentage. For example, if the calculation should have returned something like 24.89098098% this would return 2489098098.
     ///Further equations require this number to be very large,
     function calculatePrecisePercentage (uint _x, uint _y) internal pure returns (uint256)  {
@@ -27,7 +27,7 @@
 
     ///Use this function if you want to arrive at a truncated version of the percentage, represented as an integer (meaning 25% would be displayed 25).
     function calculatePercentXofY (uint _precisePercentage) internal pure returns (uint256)  {
-        uint percentOfY;
+        uint percentXOfY;
         percentXOfY = _precisePercentage.div(precision18);
         return percentXOfY;
     }
